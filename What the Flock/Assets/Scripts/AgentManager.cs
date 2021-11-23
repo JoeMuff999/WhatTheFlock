@@ -101,6 +101,12 @@ public class AgentManager : MonoBehaviour
         agentCount++;
     }
 
+    public static void UnregisterAgent(Agent agent)
+    {
+        agents.Remove(agent);
+        currentStates.Remove(agent.boidDefinition);
+    }
+
     private void Update() {
         foreach(Agent agent in agents)
         {

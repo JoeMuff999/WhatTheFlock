@@ -71,9 +71,6 @@ public class Agent : MonoBehaviour
         if (count > 0)
         {
             sum /= ((float)count);
-            // sum.setMag(maxpeed);
-
-            // Implement Reynolds: Steering = Desired - Velocity
             sum.Normalize();
             sum *= maxSpeed; //TODO: figure this out lol
             Vector3 steer = sum - this.boidDefinition.velocity;
@@ -94,17 +91,17 @@ public class Agent : MonoBehaviour
         {
             float d = Vector3.Distance(this.boidDefinition.position, boidDef.position);
             // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
-            if (d > 0 && d < separationRadius)
+            if (d > 0 && d < separationRadius) //why are checking if distance is greater than 0?
             {
                 // Calculate vector pointing away from neighbor
                 Vector3 diff = this.boidDefinition.position - boidDef.position;
                 diff.Normalize();
-                diff /= d;        // Weight by distance
+                diff /= d;
                 steer += diff;
-                count++;            // Keep track of how many
+                count++;
             }
         }
-        // Average -- divide by how many
+        // Take the Average
         if (count > 0)
         {
             steer /= ((float)count);
@@ -113,18 +110,11 @@ public class Agent : MonoBehaviour
         // As long as the vector is greater than 0
         if (steer.magnitude > 0)
         {
-            // First two lines of code below could be condensed with new PVector setMag() method
-            // Not using this method until Processing.js catches up
-            // steer.setMag(maxspeed);
-
-            // Implement Reynolds: Steering = Desired - Velocity
             steer.Normalize();
             steer *= maxSpeed;
             steer -= this.boidDefinition.velocity;
-            // steer = Vector3.ClampMagnitude(steer, 1f);
         }
         return steer;
-        // return 0.0f;
     }
 
     public void UpdatePosition(List<BoidDefinition> bds)
@@ -180,6 +170,13 @@ public class Agent : MonoBehaviour
         //         OOB = false;
         //     }
         // }
+    }
+
+    //kill the agent
+    public void destroy() {
+        AgentManager.UnregisterAgent(this);
+        UIManager.IncreaseScore();
+        Destroy(gameObject);
     }
 
     private float OOB_start_time;
