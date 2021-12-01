@@ -45,52 +45,84 @@ public class AgentManager : MonoBehaviour
     //used to give a unique id to each agent in the sim
     private static int agentCount = 0;
 
+    public float SpawnHeightMin = 0;
+    public float SpawnHeightMax = 0;
+
+    public GameObject TopLeftBoundary;
+    public GameObject BottomRightBoundary;
+
+    public static Bounds GameBounds;
+
+    void OnDrawGizmosSelected()
+    {
+        // Draw a yellow sphere at the transform's position
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawSphere(TopLeftBoundary.transform.position, 5);
+        Gizmos.DrawSphere(BottomRightBoundary.transform.position, 5);
+        Gizmos.color = Color.red;
+
+        Gizmos.DrawSphere(transform.position + new Vector3(0,SpawnHeightMin,0), 5);
+        Gizmos.DrawSphere(transform.position + new Vector3(0,SpawnHeightMax,0), 5);
+
+
+
+    }
+
     public GameObject BoidPrefab;
 
     private void Awake() {
         agents = new List<Agent>();
         currentStates = new List<BoidDefinition>();
+        GameBounds = new Bounds(new Vector3(BottomRightBoundary.transform.position.x, SpawnHeightMin, BottomRightBoundary.transform.position.z), new Vector3(TopLeftBoundary.transform.position.x, SpawnHeightMax, TopLeftBoundary.transform.position.z));
     }
 
-    // private void Start() {
-    //     Bounds bounds = CameraUtility.GetCameraBounds(Camera.main);
-    //     float min_separation = BoidPrefab.GetComponent<Agent>().separationRadius * 2;
-    //     int max_attempts = 40;
-    //     int boids_spawned = 0;
-    //     List<Vector2> placedSoFar = new List<Vector2>();
-    //     for(int i = 0; i < NumBoids; i++)
-    //     {   
-    //         int current_attempts = 0;
+    private void Start() {
+        SpawnBoids();
+    }
 
-    //         bool foundSpot = false;
-    //         float initial_x = 0;
-    //         float initial_y = 0;
-    //         while(!foundSpot && current_attempts < max_attempts)
-    //         {
-    //             initial_x = Random.Range(bounds.min.x, bounds.max.x);
-    //             initial_y = Random.Range(bounds.min.y, bounds.max.y);
-    //             Vector2 current = new Vector2(initial_x, initial_y);
-    //             foundSpot = true;
-    //             foreach(Vector2 toCheck in placedSoFar)
-    //             {
-    //                 if(Vector2.Distance(toCheck, current) < min_separation)
-    //                 {
-    //                     foundSpot = false;
-    //                     break;
-    //                 }
-    //             }
-    //             current_attempts++;
-    //         }
-    //         if(foundSpot)
-    //         {
-    //             Quaternion intial_rotation = Quaternion.Euler(0, 0, Random.Range(0.0f, 360.0f));
-    //             GameObject go = Instantiate(BoidPrefab, new Vector3(initial_x, initial_y, 0), intial_rotation);
-    //             placedSoFar.Add(new Vector2(initial_x, initial_y));
-    //             boids_spawned++;
-    //         }
-    //     }
-    //     Debug.Log("Boids spawned " + boids_spawned);
-    // }
+    private void SpawnBoids(){
+                float min_separation = BoidPrefab.GetComponent<Agent>().separationRadius * 2;
+        int max_attempts = 40;
+        int boids_spawned = 0;
+
+        List<Vector3> placedSoFar = new List<Vector3>();
+        for(int i = 0; i < NumBoids; i++)
+        {   
+            int current_attempts = 0;
+
+            bool foundSpot = false;
+            float initial_x = 0;
+            float initial_y = 0;
+            float initial_z = 0;
+            while(!foundSpot && current_attempts < max_attempts)
+            {
+                initial_x = Random.Range(BottomRightBoundary.transform.position.x, TopLeftBoundary.transform.position.x);
+                initial_y = Random.Range(BottomRightBoundary.transform.position.y, TopLeftBoundary.transform.position.y);
+                initial_z = Random.Range(SpawnHeightMin, SpawnHeightMax);
+                Vector3 current = new Vector3(initial_x, initial_y, initial_z);
+                foundSpot = true;
+                foreach(Vector3 toCheck in placedSoFar)
+                {
+                    if(Vector3.Distance(toCheck, current) < min_separation)
+                    {
+                        foundSpot = false;
+                        break;
+                    }
+                }
+                current_attempts++;
+            }
+            if(foundSpot)
+            {
+                Quaternion intial_rotation = Quaternion.Euler(0, 0, Random.Range(0.0f, 360.0f));
+                GameObject go = Instantiate(BoidPrefab, new Vector3(initial_x, initial_y, initial_z), intial_rotation);
+                placedSoFar.Add(new Vector3(initial_x, initial_y, initial_z));
+                boids_spawned++;
+            }
+        }
+        Debug.Log("Boids spawned " + boids_spawned);
+    }
+
+
 
     public static void RegisterAgent(Agent agent)
     {

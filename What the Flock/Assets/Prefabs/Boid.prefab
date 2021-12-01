@@ -150,7 +150,7 @@ MonoBehaviour:
   rotationSpeed: 0
   maxAcceleration: 1
   offScreenPadding: 0
-  neighborhoodRadius: 2
+  neighborhoodRadius: 4
   separationRadius: 1
   separationWeight: 1
   alignmentWeight: 1

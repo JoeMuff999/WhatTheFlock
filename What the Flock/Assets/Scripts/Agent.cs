@@ -199,22 +199,29 @@ public class Agent : MonoBehaviour
     //     }
     // }
 
-    // private bool isOutOfBounds()
-    // {
-    //     return OOBX() || OOBY();
-    // }
+    private bool isOutOfBounds()
+    {
+        return OOBX() || OOBY() || OOBZ();
+    }
 
-    // private bool OOBX()
-    // {
-    //     Bounds bounds = CameraUtility.GetCameraBounds(Camera.main);
-    //     return transform.position.x < bounds.min.x - offScreenPadding || transform.position.x > bounds.max.x + offScreenPadding;
-    // }
+    private bool OOBX()
+    {
+        Bounds bounds = AgentManager.GameBounds;
+        return transform.position.x < bounds.min.x || transform.position.x > bounds.max.x;
+    }
 
-    // private bool OOBY()
-    // {
-    //     Bounds bounds = CameraUtility.GetCameraBounds(Camera.main);
-    //     return transform.position.y < bounds.min.y - offScreenPadding || transform.position.y > bounds.max.y + offScreenPadding;
-    // }
+    private bool OOBY()
+    {
+        Bounds bounds = AgentManager.GameBounds;
+        return transform.position.y < bounds.min.y || transform.position.y > bounds.max.y;
+    }
+
+    private bool OOBZ()
+    {
+        Bounds bounds = AgentManager.GameBounds;
+        print(bounds.min.y);
+        return transform.position.z < bounds.min.z  || transform.position.z > bounds.max.z ;
+    }
 
     void OnTriggerEnter(Collider collider)
     {
