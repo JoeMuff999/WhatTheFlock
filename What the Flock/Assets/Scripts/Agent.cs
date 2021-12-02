@@ -11,6 +11,78 @@ using UnityEngine.Assertions;
 */
 public class Agent : MonoBehaviour
 {
+    public struct Vec3{
+        float x;
+        float y;
+        float z;
+        public Vec3(float ax, float ay, float az)
+        {
+            x = ax;
+            y = ay;
+            z = az;
+        }
+    }
+    public struct BoidDefinition
+    {
+        public Vector3 position;
+        public float heading;
+        public Vector3 velocity;
+        public int id;
+
+        public BoidDefinition(float x, float y, float heading, float speed)
+        {
+            position = new Vector2(x, y);
+            this.heading = heading;
+            this.velocity = new Vector2(speed * Mathf.Cos(Mathf.Deg2Rad * heading), speed * Mathf.Sin(Mathf.Deg2Rad * heading));
+            id = -1; //leave unassigned (must be assigned when registered into manager!)
+        }
+        //I don't like this -> potentially having an unassigned agent id
+        public BoidDefinition(BoidDefinition bp)
+        {
+            this.position = new Vector2(bp.position.x, bp.position.y);
+            this.heading = bp.heading;
+            this.velocity = bp.velocity;
+            this.id = bp.id;
+        }
+        public BoidDefinition(BoidDefinition bp, int id)
+        {
+
+            this.position = new Vector2(bp.position.x, bp.position.y);
+            this.heading = bp.heading;
+            this.velocity = bp.velocity;
+            this.id = id;
+        }
+
+        
+    public void UpdatePosition(List<BoidDefinition> bds)
+    {
+        //TODO: move outside of loop
+        // if (Vector3.Distance(transform.position, currentGoal) < goalThreshold)
+        // {
+        //     currentGoal = randomGoal();
+        // }
+        List<BoidDefinition> neighborhood = getNeighborhood(bds);
+        // float deltaAngle = separationWeight * separation(neighborhood) + alignmentWeight * alignment(neighborhood);
+        float deltaAngle = 0.0f;
+        Vector3 deltaAccel = separationWeight * accelSeparation(neighborhood) + alignmentWeight * accelAlignment(neighborhood) + goalWeight * goalVector();
+
+        deltaAccel = Vector3.ClampMagnitude(deltaAccel, maxAcceleration);
+        velocity += deltaAccel;
+
+        velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
+        Vector3 total_movement = velocity * Time.deltaTime;
+
+        //TODO: move these outside of the loop
+        // transform.Translate(total_movement, Space.World);
+        // transform.eulerAngles = new Vector3(0, -1 * Mathf.Atan2(velocity.z, velocity.x) * Mathf.Rad2Deg, Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg);
+        
+
+        position = new Vector3(transform.position.x, transform.position.y);
+        heading = heading + deltaAngle;
+        velocity = new Vector3(velocity.x + deltaAccel.x, velocity.y + deltaAccel.y);
+
+    }
+    }
     [SerializeField]
     private float maxSpeed;
     [SerializeField]
@@ -77,7 +149,7 @@ public class Agent : MonoBehaviour
     {
         Vector3 sum = new Vector3(0, 0);
         int count = 0;
-        foreach(BoidDefinition boid in neighborhood)
+        foreach (BoidDefinition boid in neighborhood)
         {
             float d = Vector3.Distance(this.boidDefinition.position, boid.position);
             sum += boid.velocity;
@@ -137,61 +209,6 @@ public class Agent : MonoBehaviour
         return (currentGoal - transform.position).normalized;
     }
 
-    public void UpdatePosition(List<BoidDefinition> bds)
-    {
-
-        if(Vector3.Distance(transform.position, currentGoal) < goalThreshold)
-        {
-            currentGoal = randomGoal();
-        }
-        List<BoidDefinition> neighborhood = getNeighborhood(bds);
-        // float deltaAngle = separationWeight * separation(neighborhood) + alignmentWeight * alignment(neighborhood);
-        float deltaAngle = 0.0f;
-        Vector3 deltaAccel = separationWeight * accelSeparation(neighborhood) + alignmentWeight * accelAlignment(neighborhood) + goalWeight * goalVector();
-        // float deltaAngle = separationWeight * separation(neighborhood);
-
-        // float deltaAngle = alignmentWeight * alignment(neighborhood) + separationWeight * separation(neighborhood) + cohesionWeight * cohesion(neighborhood);
-        // float totalRotation = rotationSpeed * Time.deltaTime;
-
-        // deltaAngle = Mathf.Clamp(deltaAngle, -1 * totalRotation, totalRotation);
-
-        // Debug.Log("seapration = " + separation(neighborhood));
-        // Debug.Log(deltaAngle);
-        // transform.Rotate(0, 0, deltaAngle, Space.World);
-        // float total_movement = movementSpeed * Time.deltaTime;
-        deltaAccel = Vector3.ClampMagnitude(deltaAccel, maxAcceleration);
-        this.boidDefinition.velocity += deltaAccel;
-
-        this.boidDefinition.velocity = Vector3.ClampMagnitude(this.boidDefinition.velocity, maxSpeed);
-        Vector3 total_movement = this.boidDefinition.velocity * Time.deltaTime;
-        //check out of bounds and then restrict movement
-        // if(OOBX(transform.position + total_movement))
-        // {
-        //     total_movement.x = 0;
-        // }
-        // if(OOBY(transform.position + total_movement))
-        // {
-        //     total_movement.y = 0;
-        //     this.boidDefinition.velocity.y = -this.boidDefinition.velocity.y; 
-        // }
-        // if(OOBZ(transform.position + total_movement))
-        // {
-        //     total_movement.z = 0;
-        // }
-        // Debug.Log(this.boidDefinition.velocity);
-        // Debug.Log(deltaAccel);
-
-
-        transform.Translate(total_movement, Space.World);
-        transform.eulerAngles = new Vector3(0,  -1 * Mathf.Atan2(this.boidDefinition.velocity.z, this.boidDefinition.velocity.x) * Mathf.Rad2Deg, Mathf.Atan2(this.boidDefinition.velocity.y, this.boidDefinition.velocity.x) * Mathf.Rad2Deg);
-        // transform.Translate(total_movement * Vector3.right);
-
-
-        this.boidDefinition.position = new Vector3(transform.position.x, transform.position.y);
-        this.boidDefinition.heading = this.boidDefinition.heading + deltaAngle;
-        this.boidDefinition.velocity = new Vector3(this.boidDefinition.velocity.x + deltaAccel.x, this.boidDefinition.velocity.y + deltaAccel.y);
-
-    }
 
     private Vector3 randomGoal()
     {
@@ -205,7 +222,8 @@ public class Agent : MonoBehaviour
     }
 
     //kill the agent
-    public void destroy() {
+    public void destroy()
+    {
         AgentManager.UnregisterAgent(this);
         UIManager.IncreaseScore();
         Destroy(gameObject);
@@ -252,12 +270,12 @@ public class Agent : MonoBehaviour
     {
         Bounds bounds = AgentManager.GameBounds;
         // print(bounds);
-        return new_pos.z < bounds.min.z  || new_pos.z > bounds.max.z ;
+        return new_pos.z < bounds.min.z || new_pos.z > bounds.max.z;
     }
 
     void OnTriggerEnter(Collider collider)
     {
-        if(Time.time - OOB_start_time > OOBCollisionProtection)
+        if (Time.time - OOB_start_time > OOBCollisionProtection)
             Debug.Log("Collision!");
         else
             Debug.Log("Collision (OOB)");

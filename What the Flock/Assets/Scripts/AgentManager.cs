@@ -3,43 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Unity.Jobs;
+using Unity.Collections;
 
-public struct BoidDefinition{
-    public Vector3 position;
-    public float heading;
-    public Vector3 velocity;
-    public int id;
 
-    public BoidDefinition(float x, float y, float heading, float speed)
-    {
-        position = new Vector2(x,y);
-        this.heading = heading;
-        this.velocity = new Vector2(speed * Mathf.Cos(Mathf.Deg2Rad * heading), speed * Mathf.Sin(Mathf.Deg2Rad * heading));
-        id = -1; //leave unassigned (must be assigned when registered into manager!)
-    }
-    //I don't like this -> potentially having an unassigned agent id
-    public BoidDefinition(BoidDefinition bp)
-    {
-        this.position = new Vector2(bp.position.x, bp.position.y);
-        this.heading = bp.heading;
-        this.velocity = bp.velocity;
-        this.id = bp.id;
-    }
-    public BoidDefinition(BoidDefinition bp, int id)
-    {
-
-        this.position = new Vector2(bp.position.x, bp.position.y);
-        this.heading = bp.heading;
-        this.velocity = bp.velocity;
-        this.id = id;
-    }
-}
 
 
 public class AgentManager : MonoBehaviour
 {
     private static List<Agent> agents;    
-    private static List<BoidDefinition> currentStates;
+    private static List<Agent.BoidDefinition> currentStates;
 
     public int NumBoids;
     
@@ -71,15 +43,23 @@ public class AgentManager : MonoBehaviour
 
     public GameObject BoidPrefab;
 
-    // public struct AgentUpdateJob : IJobParallelFor
-    // {
-
-    // }
+    public struct AgentUpdateJob : IJobParallelFor
+    {
+        NativeArray<Agent.BoidDefinition> currentAgentStates;
+        NativeArray<Agent.BoidDefinition> updatedAgentStates;
+        
+        public void Execute(int idx)
+        {
+            var data = updatedAgentStates[idx];
+            data.UpdatePosition(currentAgentStates);
+            
+        }
+    }
 
 
     private void Awake() {
         agents = new List<Agent>();
-        currentStates = new List<BoidDefinition>();
+        currentStates = new List<Agent.BoidDefinition>();
         GameBounds = new Bounds();
         GameBounds.SetMinMax(new Vector3(BottomRightBoundary.transform.position.x, SpawnHeightMin, BottomRightBoundary.transform.position.z), new Vector3(TopLeftBoundary.transform.position.x, SpawnHeightMax, TopLeftBoundary.transform.position.z));
     }
@@ -134,9 +114,9 @@ public class AgentManager : MonoBehaviour
 
     public static void RegisterAgent(Agent agent)
     {
-        agent.boidDefinition = new BoidDefinition(agent.boidDefinition, agentCount);//assign id here
+        agent.boidDefinition = new Agent.BoidDefinition(agent.boidDefinition, agentCount);//assign id here
         agents.Add(agent);
-        currentStates.Add(new BoidDefinition(agent.boidDefinition));
+        currentStates.Add(new Agent.BoidDefinition(agent.boidDefinition));
         // Debug.Log(currentStates[currentStates.Count-1].id);
         agentCount++;
     }
@@ -152,10 +132,10 @@ public class AgentManager : MonoBehaviour
         {
             agent.UpdatePosition(currentStates);
         }
-        currentStates = new List<BoidDefinition>();
+        currentStates = new List<Agent.BoidDefinition>();
         foreach(Agent agent in agents)
         {
-            currentStates.Add(new BoidDefinition(agent.boidDefinition));
+            currentStates.Add(new Agent.BoidDefinition(agent.boidDefinition));
         }
     }   
 }
