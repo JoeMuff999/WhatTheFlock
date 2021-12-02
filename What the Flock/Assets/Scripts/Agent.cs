@@ -187,9 +187,9 @@ public class Agent : MonoBehaviour
         // transform.Translate(total_movement * Vector3.right);
 
 
-        this.boidDefinition.position = new Vector3(transform.position.x, transform.position.y);
+        this.boidDefinition.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
         this.boidDefinition.heading = this.boidDefinition.heading + deltaAngle;
-        this.boidDefinition.velocity = new Vector3(this.boidDefinition.velocity.x + deltaAccel.x, this.boidDefinition.velocity.y + deltaAccel.y);
+        this.boidDefinition.velocity = new Vector3(this.boidDefinition.velocity.x + deltaAccel.x, this.boidDefinition.velocity.y + deltaAccel.y, this.boidDefinition.velocity.z + deltaAccel.z);
 
     }
 
