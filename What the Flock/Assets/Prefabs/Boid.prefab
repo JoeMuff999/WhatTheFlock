@@ -146,13 +146,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 378ebe3126e70ac4a80e8f0d8b1c0827, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 5
+  maxSpeed: 10
   rotationSpeed: 0
-  maxAcceleration: 1
+  maxAcceleration: 3
   offScreenPadding: 0
   neighborhoodRadius: 4
   separationRadius: 1
   separationWeight: 1
   alignmentWeight: 1
   cohesionWeight: 1
+  goalWeight: 1
   OOBCollisionProtection: 0.5
+  goalThreshold: 5

@@ -2,6 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
+
+/*
+
+    TODO: have agents try to kill player?
+    intelligently limit their y movement (really just dont let them crash into the ground)
+
+*/
 public class Agent : MonoBehaviour
 {
     [SerializeField]
@@ -30,16 +37,24 @@ public class Agent : MonoBehaviour
     private float alignmentWeight;
     [SerializeField]
     private float cohesionWeight;
+    [SerializeField]
+    private float goalWeight;
 
     [SerializeField]
     private float OOBCollisionProtection = .5f;
 
     private bool OOB = false;
 
+    private Vector3 currentGoal;
+
+    public float goalThreshold = 5.0f;
+
+
     private void Start()
     {
         boidDefinition = new BoidDefinition(transform.position.x, transform.position.y, transform.eulerAngles.z, maxSpeed);
         AgentManager.RegisterAgent(this);
+        currentGoal = randomGoal();
     }
 
     private List<BoidDefinition> getNeighborhood(List<BoidDefinition> boidDefinitions)
@@ -117,21 +132,28 @@ public class Agent : MonoBehaviour
         return steer;
     }
 
+    private Vector3 goalVector()
+    {
+        return (currentGoal - transform.position).normalized;
+    }
+
     public void UpdatePosition(List<BoidDefinition> bds)
     {
-        float heading = transform.eulerAngles.z * Mathf.Deg2Rad;
 
-
+        if(Vector3.Distance(transform.position, currentGoal) < goalThreshold)
+        {
+            currentGoal = randomGoal();
+        }
         List<BoidDefinition> neighborhood = getNeighborhood(bds);
         // float deltaAngle = separationWeight * separation(neighborhood) + alignmentWeight * alignment(neighborhood);
         float deltaAngle = 0.0f;
-        Vector3 deltaAccel = separationWeight * accelSeparation(neighborhood) + alignmentWeight * accelAlignment(neighborhood);
+        Vector3 deltaAccel = separationWeight * accelSeparation(neighborhood) + alignmentWeight * accelAlignment(neighborhood) + goalWeight * goalVector();
         // float deltaAngle = separationWeight * separation(neighborhood);
 
         // float deltaAngle = alignmentWeight * alignment(neighborhood) + separationWeight * separation(neighborhood) + cohesionWeight * cohesion(neighborhood);
-        float totalRotation = rotationSpeed * Time.deltaTime;
+        // float totalRotation = rotationSpeed * Time.deltaTime;
 
-        deltaAngle = Mathf.Clamp(deltaAngle, -1 * totalRotation, totalRotation);
+        // deltaAngle = Mathf.Clamp(deltaAngle, -1 * totalRotation, totalRotation);
 
         // Debug.Log("seapration = " + separation(neighborhood));
         // Debug.Log(deltaAngle);
@@ -142,34 +164,44 @@ public class Agent : MonoBehaviour
 
         this.boidDefinition.velocity = Vector3.ClampMagnitude(this.boidDefinition.velocity, maxSpeed);
         Vector3 total_movement = this.boidDefinition.velocity * Time.deltaTime;
+        //check out of bounds and then restrict movement
+        // if(OOBX(transform.position + total_movement))
+        // {
+        //     total_movement.x = 0;
+        // }
+        // if(OOBY(transform.position + total_movement))
+        // {
+        //     total_movement.y = 0;
+        //     this.boidDefinition.velocity.y = -this.boidDefinition.velocity.y; 
+        // }
+        // if(OOBZ(transform.position + total_movement))
+        // {
+        //     total_movement.z = 0;
+        // }
         // Debug.Log(this.boidDefinition.velocity);
         // Debug.Log(deltaAccel);
 
 
         transform.Translate(total_movement, Space.World);
-        transform.eulerAngles = new Vector3(0, 0, Mathf.Atan2(this.boidDefinition.velocity.y, this.boidDefinition.velocity.x) * Mathf.Rad2Deg);
+        transform.eulerAngles = new Vector3(0,  -1 * Mathf.Atan2(this.boidDefinition.velocity.z, this.boidDefinition.velocity.x) * Mathf.Rad2Deg, Mathf.Atan2(this.boidDefinition.velocity.y, this.boidDefinition.velocity.x) * Mathf.Rad2Deg);
         // transform.Translate(total_movement * Vector3.right);
 
 
         this.boidDefinition.position = new Vector3(transform.position.x, transform.position.y);
         this.boidDefinition.heading = this.boidDefinition.heading + deltaAngle;
         this.boidDefinition.velocity = new Vector3(this.boidDefinition.velocity.x + deltaAccel.x, this.boidDefinition.velocity.y + deltaAccel.y);
-        // if (isOutOfBounds())
-        // {
-        //     if (OOB == false)
-        //     {
 
-        //         reflectPosition();
-        //         OOB = true;
-        //     }
-        // }
-        // else
-        // {
-        //     if (OOB)
-        //     {
-        //         OOB = false;
-        //     }
-        // }
+    }
+
+    private Vector3 randomGoal()
+    {
+        Bounds bounds = AgentManager.GameBounds;
+        Vector3 randomGoal = new Vector3(
+            Random.Range(bounds.min.x, bounds.max.x),
+            Random.Range(bounds.min.y, bounds.max.y),
+            Random.Range(bounds.min.z, bounds.max.z)
+        );
+        return randomGoal;
     }
 
     //kill the agent
@@ -199,28 +231,28 @@ public class Agent : MonoBehaviour
     //     }
     // }
 
-    private bool isOutOfBounds()
-    {
-        return OOBX() || OOBY() || OOBZ();
-    }
+    // private bool isOutOfBounds()
+    // {
+    //     return OOBX() || OOBY() || OOBZ();
+    // }
 
-    private bool OOBX()
+    private bool OOBX(Vector3 new_pos)
     {
         Bounds bounds = AgentManager.GameBounds;
-        return transform.position.x < bounds.min.x || transform.position.x > bounds.max.x;
+        return new_pos.x < bounds.min.x || new_pos.x > bounds.max.x;
     }
 
-    private bool OOBY()
+    private bool OOBY(Vector3 new_pos)
     {
         Bounds bounds = AgentManager.GameBounds;
-        return transform.position.y < bounds.min.y || transform.position.y > bounds.max.y;
+        return new_pos.y < bounds.min.y || new_pos.y > bounds.max.y;
     }
 
-    private bool OOBZ()
+    private bool OOBZ(Vector3 new_pos)
     {
         Bounds bounds = AgentManager.GameBounds;
-        print(bounds.min.y);
-        return transform.position.z < bounds.min.z  || transform.position.z > bounds.max.z ;
+        // print(bounds);
+        return new_pos.z < bounds.min.z  || new_pos.z > bounds.max.z ;
     }
 
     void OnTriggerEnter(Collider collider)

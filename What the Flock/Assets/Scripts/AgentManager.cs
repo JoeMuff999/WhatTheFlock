@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
+using Unity.Jobs;
 
 public struct BoidDefinition{
     public Vector3 position;
@@ -70,10 +71,17 @@ public class AgentManager : MonoBehaviour
 
     public GameObject BoidPrefab;
 
+    // public struct AgentUpdateJob : IJobParallelFor
+    // {
+
+    // }
+
+
     private void Awake() {
         agents = new List<Agent>();
         currentStates = new List<BoidDefinition>();
-        GameBounds = new Bounds(new Vector3(BottomRightBoundary.transform.position.x, SpawnHeightMin, BottomRightBoundary.transform.position.z), new Vector3(TopLeftBoundary.transform.position.x, SpawnHeightMax, TopLeftBoundary.transform.position.z));
+        GameBounds = new Bounds();
+        GameBounds.SetMinMax(new Vector3(BottomRightBoundary.transform.position.x, SpawnHeightMin, BottomRightBoundary.transform.position.z), new Vector3(TopLeftBoundary.transform.position.x, SpawnHeightMax, TopLeftBoundary.transform.position.z));
     }
 
     private void Start() {
@@ -81,7 +89,7 @@ public class AgentManager : MonoBehaviour
     }
 
     private void SpawnBoids(){
-                float min_separation = BoidPrefab.GetComponent<Agent>().separationRadius * 2;
+        float min_separation = BoidPrefab.GetComponent<Agent>().separationRadius * 2;
         int max_attempts = 40;
         int boids_spawned = 0;
 
@@ -97,8 +105,8 @@ public class AgentManager : MonoBehaviour
             while(!foundSpot && current_attempts < max_attempts)
             {
                 initial_x = Random.Range(BottomRightBoundary.transform.position.x, TopLeftBoundary.transform.position.x);
-                initial_y = Random.Range(BottomRightBoundary.transform.position.y, TopLeftBoundary.transform.position.y);
-                initial_z = Random.Range(SpawnHeightMin, SpawnHeightMax);
+                initial_y = Random.Range(SpawnHeightMin, SpawnHeightMax);
+                initial_z = Random.Range(BottomRightBoundary.transform.position.z, TopLeftBoundary.transform.position.z);
                 Vector3 current = new Vector3(initial_x, initial_y, initial_z);
                 foundSpot = true;
                 foreach(Vector3 toCheck in placedSoFar)

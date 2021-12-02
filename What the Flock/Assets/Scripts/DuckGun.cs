@@ -8,6 +8,8 @@ public class DuckGun : MonoBehaviour
     public float pitch_min;
     public float pitch_max;
 
+
+
     private void Start() {
         quack = GetComponent<AudioSource>();
     }
@@ -15,6 +17,10 @@ public class DuckGun : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             fire();
+        }
+        if (Input.GetMouseButtonDown(1))
+        {
+            PlayerCamera.ZoomCamera();
         }
     }
     private void fire(){
