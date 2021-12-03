@@ -17,11 +17,14 @@ public class PlayerCamera : MonoBehaviour
     }
     void Update () {
         float speed = isZoomed ? ZoomedSpeed : DefaultSpeed;
-        Debug.Log(speed);
+        // Debug.Log(speed);
         float mouseXDelta = Input.GetAxis ("Mouse X");
         float mouseYDelta = Input.GetAxis("Mouse Y");
         Vector3 rotation = new Vector3(-mouseYDelta, mouseXDelta, 0);
         transform.eulerAngles += (rotation * speed);
+         if (Input.GetKey ("escape")) {
+                 Application.Quit();
+        }
     }
 
     public static void ZoomCamera()
