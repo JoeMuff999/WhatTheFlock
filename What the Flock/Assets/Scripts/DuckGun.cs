@@ -5,18 +5,28 @@ public class DuckGun : MonoBehaviour
 {
 
     AudioSource quack;
-    public float pitch_min;
-    public float pitch_max;
+    public float PitchMin;
+    public float PitchMax;
+
+    public float ReloadTime;
+
+    private float reloadTimer;
 
 
 
     private void Start() {
         quack = GetComponent<AudioSource>();
+        reloadTimer = 0;
     }
     private void Update() {
+        reloadTimer -= Time.deltaTime;
         if (Input.GetMouseButtonDown(0))
         {
-            fire();
+            if(reloadTimer < 0)
+            {
+                fire();
+                reloadTimer = ReloadTime;
+            }
         }
         if (Input.GetMouseButtonDown(1))
         {
@@ -27,7 +37,7 @@ public class DuckGun : MonoBehaviour
         Debug.Log("quack");
         RaycastHit hit;
         LayerMask mask = LayerMask.GetMask("Boid");
-        quack.pitch = Random.Range(pitch_min, pitch_max);
+        quack.pitch = Random.Range(PitchMin, PitchMax);
         quack.Play();
         if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, mask.value))
         {

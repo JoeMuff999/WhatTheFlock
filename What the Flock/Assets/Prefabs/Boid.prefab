@@ -153,8 +153,10 @@ MonoBehaviour:
     velocity: {x: 0, y: 0, z: 0}
     id: 0
     currentGoal: {x: 0, y: 0, z: 0}
+    PlayerPosition: {x: -1.81, y: -0.38, z: -15.08}
     maxSpeed: 7
     maxAcceleration: 0.1
+    TargetPlayerChance: 0.01
     neighborhoodRadius: 10
     separationRadius: 3
     separationWeight: 1

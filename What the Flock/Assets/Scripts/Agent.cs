@@ -23,8 +23,16 @@ public class Agent : MonoBehaviour
         public int id;
         [HideInInspector]
         public Vector3 currentGoal;
+
+        public Vector3 PlayerPosition;
+
+        [Header("Agent Parameters")]
         public float maxSpeed;
         public float maxAcceleration;
+        public float TargetPlayerChance;
+        public float TargetPlayerTimer;
+
+        private float currentPlayerTargetTimer;
 
         [Header("Boid Parameters")]
         public float neighborhoodRadius;
@@ -35,7 +43,12 @@ public class Agent : MonoBehaviour
         public float goalWeight;
         public float goalThreshold;
 
+
+
         private bool wentOOB;
+
+        private bool attackingPlayer;
+
 
         public Unity.Mathematics.Random randomRef;
 
@@ -48,18 +61,39 @@ public class Agent : MonoBehaviour
             return new Vector3(x, y, z);
         }
 
+        private bool shouldAttackPlayer()
+        {
+            if(currentPlayerTargetTimer < 0)
+            {
+                currentPlayerTargetTimer = TargetPlayerTimer;
+                float x = randomRef.NextFloat(0, 1);
+                if(x <= TargetPlayerChance)
+                {
+                    currentGoal = PlayerPosition;
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public void UpdatePosition(NativeArray<Agent.BoidDefinition> bds, float deltaTime)
         {
+            currentPlayerTargetTimer -= deltaTime;
+
             Vector3 deltaAccel;
             //if OOB, go towards goal vector until reached
-            if (wentOOB)
+            if(attackingPlayer)
+            {
+                deltaAccel = goalVector() * goalWeight;
+
+            }
+            else if (wentOOB)
             {
                 deltaAccel = goalVector() * goalWeight;
                 if (Vector3.Distance(position, currentGoal) < goalThreshold)
                 {
                     wentOOB = false;
                     currentGoal = getRandomGoal();
-                    Debug.Log(currentGoal);
                 }
             }
             else
@@ -83,6 +117,10 @@ public class Agent : MonoBehaviour
             if (isOOB(position))
             {
                 wentOOB = true;
+            }
+            if (shouldAttackPlayer())
+            {
+                attackingPlayer = true;
             }
 
         }

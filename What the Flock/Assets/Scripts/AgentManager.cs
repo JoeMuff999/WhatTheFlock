@@ -133,7 +133,7 @@ public class AgentManager : MonoBehaviour
     public static void RegisterAgent(Agent agent)
     {
         agent.boidDefinition.id = agentCount;//assign id here
-        agent.boidDefinition.randomRef = new Unity.Mathematics.Random((uint)(agentCount+1));
+        agent.boidDefinition.randomRef = new Unity.Mathematics.Random((uint)(agentCount + 1));
 
         agents.Add(agent);
         currentAgentStates[agentCount] = agent.boidDefinition; //NOTE: this is a copy b/c structs are value types, https://jonskeet.uk/csharp/references.html
@@ -169,9 +169,9 @@ public class AgentManager : MonoBehaviour
         //safe copy, idk how c# works so just trying to be sure
         NativeArray<Agent.BoidDefinition>.Copy(updatedAgentStates, currentAgentStates);
         //potentially unavoidable
-        for(int i = 0; i < currentAgentStates.Length; ++i)
+        for (int i = 0; i < currentAgentStates.Length; ++i)
         {
-            agents[i].boidDefinition = currentAgentStates[i]; 
+            agents[i].boidDefinition = currentAgentStates[i];
         }
         updatedAgentStates.Dispose();
     }
@@ -213,6 +213,11 @@ public class AgentManager : MonoBehaviour
             //move visual representation
             Transform t = a.transform;
             t.position = a.boidDefinition.position;
+            if (Vector3.Distance(t.position, a.boidDefinition.PlayerPosition) < .5f)
+            {
+                //kill player.
+                
+            }
             Vector3 velocity = a.boidDefinition.velocity;
 
             // t.rotation = new Vector3(0, -1 * Mathf.Atan2(velocity.z, velocity.x) * Mathf.Rad2Deg, Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg);
