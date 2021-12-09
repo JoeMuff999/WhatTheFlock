@@ -8,7 +8,10 @@ public class UIManager : MonoBehaviour
     public GameObject TimeDisplay;
     public GameObject EndScreen;
 
-    public static GameObject DeathScreen;
+    public  GameObject DeathScreen;
+    public  GameObject DeathImage;
+
+    public static bool died = false;
 
     public static int PlayerScore = 0;
     public int TimeRemaining;
@@ -16,7 +19,13 @@ public class UIManager : MonoBehaviour
     void Start()
     {
         StartCoroutine("gameTimer");
-        DeathScreen = GameObject.Find("UI/DeathScreen");
+
+    }
+    private void Update() {
+        if(died)
+        {
+            ShowDeathScreen();
+        }
     }
 
     public static void IncreaseScore()
@@ -28,9 +37,14 @@ public class UIManager : MonoBehaviour
         ScoreDisplay.GetComponent<TextMeshProUGUI>().text = "Score: " + PlayerScore;
     }
 
-    public static void ShowDeathScreen()
+    public static void Death()
+    {
+        died = true;
+    }
+    public void ShowDeathScreen()
     {
         DeathScreen.SetActive(true);
+        DeathImage.SetActive(true);
         Time.timeScale = 0;
     }    
 
@@ -45,5 +59,7 @@ public class UIManager : MonoBehaviour
         }
         //trigger end game stuff
         EndScreen.SetActive(true);
+        DeathImage.SetActive(true);
+        Time.timeScale = 0;
     }
 }

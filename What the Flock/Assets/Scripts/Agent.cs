@@ -88,7 +88,7 @@ public class Agent : MonoBehaviour
             if(attackingPlayer)
             {
                 deltaAccel = goalVector() * goalWeight;
-
+                
             }
             else if (wentOOB)
             {

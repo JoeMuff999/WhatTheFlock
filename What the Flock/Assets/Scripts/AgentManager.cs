@@ -216,7 +216,7 @@ public class AgentManager : MonoBehaviour
             if (Vector3.Distance(t.position, a.boidDefinition.PlayerPosition) < .5f)
             {
                 //kill player.
-                
+                UIManager.Death();
             }
             Vector3 velocity = a.boidDefinition.velocity;
 
