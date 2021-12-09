@@ -67,9 +67,12 @@ public class Agent : MonoBehaviour
             {
                 currentPlayerTargetTimer = TargetPlayerTimer;
                 float x = randomRef.NextFloat(0, 1);
-                if(x <= TargetPlayerChance)
+                if(x >= TargetPlayerChance)
                 {
                     currentGoal = PlayerPosition;
+                    // Debug.Log("happened");
+                    // Debug.Log(x);
+
                     return true;
                 }
             }

@@ -4,7 +4,9 @@ using UnityEngine;
 public class DuckGun : MonoBehaviour
 {
 
-    AudioSource quack;
+    public AudioSource shoot;
+
+    public GameObject Duck;
     public float PitchMin;
     public float PitchMax;
 
@@ -15,7 +17,6 @@ public class DuckGun : MonoBehaviour
 
 
     private void Start() {
-        quack = GetComponent<AudioSource>();
         reloadTimer = 0;
     }
     private void Update() {
@@ -33,17 +34,16 @@ public class DuckGun : MonoBehaviour
             PlayerCamera.ZoomCamera();
         }
     }
-    private void fire(){
-        Debug.Log("quack");
-        RaycastHit hit;
-        LayerMask mask = LayerMask.GetMask("Boid");
-        quack.pitch = Random.Range(PitchMin, PitchMax);
-        quack.Play();
-        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, mask.value))
-        {
-            hit.collider.gameObject.GetComponentInParent<Agent>().destroy();
-        }
-            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * 1000, Color.yellow, 5);
+
+    private void fire()
+    {
+        // Debug.Log("quack");
+        shoot.Play();
+        GameObject duck = Instantiate(Duck, transform.position , Camera.main.transform.rotation);
+        
+
+        
+            // Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * 1000, Color.yellow, 5);
 
     }
 }
