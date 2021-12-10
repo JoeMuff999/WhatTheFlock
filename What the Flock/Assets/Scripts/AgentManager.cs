@@ -7,7 +7,13 @@ using Unity.Collections;
 
 
 
-
+/*
+    High-level manager of the game's AI
+    Maintains a list of all agents in the game
+    Responsible for telling the agents when to update their values. 
+    Since Agent updates only change internal values (do not directly modify the gameObject), the AgentManager is also responsible for updating the Agent's GameObject in the world.
+    Includes both a sequential update method and a parallel update method which can be changed with "ParallelizationEnabled" in the editor
+*/
 public class AgentManager : MonoBehaviour
 {
     private static List<Agent> agents;
@@ -30,6 +36,10 @@ public class AgentManager : MonoBehaviour
     public bool ParallelizationEnabled;
 
 
+    /*
+        For debugging
+        Draws spheres in the editor where the boundaries for the agents are
+    */
     void OnDrawGizmosSelected()
     {
         // Draw a yellow sphere at the transform's position
@@ -40,13 +50,14 @@ public class AgentManager : MonoBehaviour
 
         Gizmos.DrawSphere(transform.position + new Vector3(0, SpawnHeightMin, 0), 5);
         Gizmos.DrawSphere(transform.position + new Vector3(0, SpawnHeightMax, 0), 5);
-
-
-
     }
 
     public GameObject BoidPrefab;
 
+    /*
+        Parallel update job for our agents
+        Each agent will have its update method added to a job queue
+    */
     public struct AgentUpdateJob : IJobParallelFor
     {
         [ReadOnly]
@@ -76,6 +87,11 @@ public class AgentManager : MonoBehaviour
         SpawnBoids();
     }
 
+    /*
+        Responsible for spawning boids on startup
+        Spawns boids within the boundaries defined in the editor ("TopLeftBoundary" and "BottomRightBoundary"; "SpawnHeightMin" and "SpawnHeightMax")
+        Does so "safely" by making sure each Boid is initalized at least some minimum distance away from neighboring boids
+    */
     private void SpawnBoids()
     {
         float min_separation = BoidPrefab.GetComponent<Agent>().boidDefinition.separationRadius * 2;
@@ -130,6 +146,10 @@ public class AgentManager : MonoBehaviour
         return randomGoal;
     }
 
+    /*
+        Each agent registers itself with the manager
+        Upon doing so, it is given a unique id. It is also added to the AgentManager's list of agents
+    */
     public static void RegisterAgent(Agent agent)
     {
         agent.boidDefinition.id = agentCount;//assign id here
@@ -141,6 +161,10 @@ public class AgentManager : MonoBehaviour
         agentCount++;
     }
 
+    /*
+        On death, agents will unregister themselves from the manager
+        They are given an id of -1 and they will no longer be updated and/or be considered in future updates
+    */
     public static void UnregisterAgent(Agent agent)
     {
         // agents.Remove(agent);
@@ -150,7 +174,11 @@ public class AgentManager : MonoBehaviour
         //NOTE: agents that are dead will have an id of -1. places of concern: main loop (do not update states of dead agents), neighborhood checks (do not check against neighbors that are dead)
         //cant remove agent from agent list because then size of agents will be smaller than size of currentAgentStates. TODO: if you have time, come up with a better solution to this.
     }
-
+    /*
+        Core update loop for our agents
+        Schedules a job for each agent's update
+        Parallelized using Unity's Job system
+    */
     private void parallelUpdate()
     {
         NativeArray<Agent.BoidDefinition> updatedAgentStates = new NativeArray<Agent.BoidDefinition>(agents.Count, Allocator.TempJob);
@@ -168,7 +196,7 @@ public class AgentManager : MonoBehaviour
         handle.Complete();
         //safe copy, idk how c# works so just trying to be sure
         NativeArray<Agent.BoidDefinition>.Copy(updatedAgentStates, currentAgentStates);
-        //potentially unavoidable
+        //copy the output of the jobs back into the agent states 
         for (int i = 0; i < currentAgentStates.Length; ++i)
         {
             agents[i].boidDefinition = currentAgentStates[i];
@@ -176,6 +204,10 @@ public class AgentManager : MonoBehaviour
         updatedAgentStates.Dispose();
     }
 
+    /*
+        *Non-parallel* (depracated, only here for demonstration purposes)
+        Core update loop for our agents
+    */
     private void defaultUpdate()
     {
         foreach (Agent agent in agents)

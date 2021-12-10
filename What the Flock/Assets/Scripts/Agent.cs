@@ -5,13 +5,17 @@ using UnityEngine.Assertions;
 using Unity.Collections;
 using Unity.Mathematics;
 /*
-
-    TODO: have agents try to kill player?
-    intelligently limit their y movement (really just dont let them crash into the ground)
-
+    Agent class. Core unit of AI in the game
+    Contains no Unity Update method. As such, updates will only occur in the Agent if it is invoked by the AgentManager
+    Core data structure is the BoidDefinition which also contains almost all of its logic. 
 */
 public class Agent : MonoBehaviour
 {
+    /*
+        Main container for Boid information
+        In order to conform with Unity's Job system, it must be a struct and must not contain managed types 
+        Has no references to its gameObject (nature of structs). Instead, it updates its internal state, which is then translated into the game by the AgentManager.
+    */
     [System.Serializable]
     public struct BoidDefinition
     {
@@ -46,7 +50,6 @@ public class Agent : MonoBehaviour
 
 
         private bool wentOOB;
-
         private bool attackingPlayer;
 
 
@@ -70,15 +73,19 @@ public class Agent : MonoBehaviour
                 if(x >= TargetPlayerChance)
                 {
                     currentGoal = PlayerPosition;
-                    // Debug.Log("happened");
-                    // Debug.Log(x);
-
                     return true;
                 }
             }
             return false;
         }
 
+        /*
+            Reynold's Boid Algorithm (does not use cohesion)
+            Three states:
+                - standard boid algorithm (behavior driven by : separation and alignment) 
+                - out of bounds (behavior driven by : goal vector -> goal is a random point in bounds)
+                - attack player (behavior driven by : goal vector -> goal is the player's position)
+        */
         public void UpdatePosition(NativeArray<Agent.BoidDefinition> bds, float deltaTime)
         {
             currentPlayerTargetTimer -= deltaTime;
@@ -127,7 +134,10 @@ public class Agent : MonoBehaviour
             }
 
         }
-
+        /*
+            Get the list of boids which are within this agent's neighborhood radius. 
+            Only agent's within this neighborhood can have any effect on this agent's velocity
+        */
         private List<BoidDefinition> getNeighborhood(NativeArray<BoidDefinition> boidDefinitions)
         {
             List<BoidDefinition> neighborhood = new List<BoidDefinition>();
@@ -145,21 +155,23 @@ public class Agent : MonoBehaviour
             return neighborhood;
         }
 
+        /*
+            Outputs a velocity (Vector3) which is the normalized sum of neighboring agents' velocities
+        */
         private Vector3 accelAlignment(List<BoidDefinition> neighborhood)
         {
             Vector3 sum = Vector3.zero;
-            int count = 0;
+            int num_neighbors = 0;
             foreach (BoidDefinition boid in neighborhood)
             {
-                float d = Vector3.Distance(position, boid.position);
                 sum += boid.velocity;
-                count++;
+                num_neighbors++;
             }
-            if (count > 0)
+            if (num_neighbors > 0) //don't divide by 0
             {
-                sum /= ((float)count);
+                sum /= ((float)num_neighbors);
                 sum.Normalize();
-                sum *= maxSpeed; //TODO: figure this out lol
+                sum *= maxSpeed; 
                 Vector3 steer = sum - velocity;
                 return steer;
             }
@@ -168,7 +180,10 @@ public class Agent : MonoBehaviour
                 return Vector3.zero;
             }
         }
-
+        /*
+            Outputs a velocity (Vector3) which is the normalized sum of vectors that point in the opposite direction of neighboring agents within this agent's separation radius
+            Basically, to not collide with a neighboring agent, go the opposite direction of the agent. Take this vector for each agent witin the separationRadius and average it.
+        */
         private Vector3 accelSeparation(List<BoidDefinition> neighborhood)
         {
             Vector3 steer = Vector3.zero;
@@ -177,10 +192,8 @@ public class Agent : MonoBehaviour
             foreach (BoidDefinition boidDef in neighborhood)
             {
                 float d = Vector3.Distance(position, boidDef.position);
-                // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
-                if (d > 0 && d < separationRadius) //why are checking if distance is greater than 0?
+                if (d < separationRadius) //separate from all agents within separationRadius
                 {
-                    // Calculate vector pointing away from neighbor
                     Vector3 diff = position - boidDef.position;
                     diff.Normalize();
                     diff /= d;
@@ -238,14 +251,6 @@ public class Agent : MonoBehaviour
 
 
     public BoidDefinition boidDefinition;
-
-    // [SerializeField]
-    // private float offScreenPadding;
-
-    // [SerializeField]
-    // private float OOBCollisionProtection = .5f;
-
-    // private bool OOB = false;
     private void Start()
     {
         boidDefinition.position = transform.position;
@@ -258,24 +263,20 @@ public class Agent : MonoBehaviour
 
 
     //kill the agent
+    /*
+        unregisters agent from agent manager
+        no longer interacts with other boids and is ignored in calculations and rendering
+        increases the player's score
+    */
     public void destroy()
     {
-        if(boidDefinition.id == -1) //already destroyed, but can still be hit LOL
+        if(boidDefinition.id == -1) //already unregistered
             return;
+        gameObject.layer = 0; //no more collisions for you!
         AgentManager.UnregisterAgent(this);
         UIManager.IncreaseScore();
         gameObject.GetComponentInChildren<Renderer>().enabled = false; //dont destroy because i need it to stay alive until i figure out garbage collection :D... shhh keep it a secret :P
         // Destroy(gameObject);
-    }
-
-
-
-    void OnTriggerEnter(Collider collider)
-    {
-        // if (Time.time - OOB_start_time > OOBCollisionProtection)
-        //     Debug.Log("Collision!");
-        // else
-        //     Debug.Log("Collision (OOB)");
     }
 
 }

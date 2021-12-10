@@ -1,3 +1,5 @@
 https://edinburghrecords.com <- background noises
 https://www.youtube.com/watch?v=1PUT30N9AGc <- plane noise
 "Clay Duck" (https://skfb.ly/6YvJz) by bradacvojtech is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/). <- duck model
+Low-Poly Simple Nature Pack, https://assetstore.unity.com/packages/3d/environments/landscapes/low-poly-simple-nature-pack-162153 <- level environment
+https://free3d.com/3d-model/airplane-v1--592360.html <- plane model

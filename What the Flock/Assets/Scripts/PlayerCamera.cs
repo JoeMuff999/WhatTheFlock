@@ -17,11 +17,18 @@ public class PlayerCamera : MonoBehaviour
     }
     void Update () {
         float speed = isZoomed ? ZoomedSpeed : DefaultSpeed;
-        // Debug.Log(speed);
         float mouseXDelta = Input.GetAxis ("Mouse X");
         float mouseYDelta = Input.GetAxis("Mouse Y");
         Vector3 rotation = new Vector3(-mouseYDelta, mouseXDelta, 0);
-        transform.eulerAngles += (rotation * speed);
+        // float new_x = transform.localEulerAngles.x + rotation.x*speed;
+        // Debug.Log(transform.localEulerAngles);
+        // float clamp_x = Mathf.Clamp(new_x, -89.0f, 89.0f);
+        // if(new_x != clamp_x)
+        //     Debug.Log(new_x);
+
+        // Vector3 new_euler_angles = new Vector3(clamp_x, transform.eulerAngles.y + rotation.y*speed, transform.eulerAngles.z);
+        transform.eulerAngles += rotation * speed;
+
          if (Input.GetKey ("escape")) {
                  Application.Quit();
         }

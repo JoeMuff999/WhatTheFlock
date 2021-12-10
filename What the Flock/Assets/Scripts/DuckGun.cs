@@ -7,9 +7,6 @@ public class DuckGun : MonoBehaviour
     public AudioSource shoot;
 
     public GameObject Duck;
-    public float PitchMin;
-    public float PitchMax;
-
     public float ReloadTime;
 
     private float reloadTimer;
@@ -37,13 +34,7 @@ public class DuckGun : MonoBehaviour
 
     private void fire()
     {
-        // Debug.Log("quack");
         shoot.Play();
         GameObject duck = Instantiate(Duck, transform.position , Camera.main.transform.rotation);
-        
-
-        
-            // Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * 1000, Color.yellow, 5);
-
     }
 }
