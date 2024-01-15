@@ -11,8 +11,6 @@ public class DuckGun : MonoBehaviour
 
     private float reloadTimer;
 
-
-
     private void Start() {
         reloadTimer = 0;
     }

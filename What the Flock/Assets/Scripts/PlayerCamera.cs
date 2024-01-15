@@ -8,16 +8,18 @@ public class PlayerCamera : MonoBehaviour
     Vector2 rotation = Vector2.zero;
     public float DefaultSpeed = 3;
     public float ZoomedSpeed = 0.5f;
+
     private static bool isZoomed = false;
 
     public static float ZoomedFov = 15.0f;
     public static float DefaultFov = 90.0f;
     private void Start() {
+        Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
     void Update () {
         float speed = isZoomed ? ZoomedSpeed : DefaultSpeed;
-        float mouseXDelta = Input.GetAxis ("Mouse X");
+        float mouseXDelta = Input.GetAxis("Mouse X");
         float mouseYDelta = Input.GetAxis("Mouse Y");
         Vector3 rotation = new Vector3(-mouseYDelta, mouseXDelta, 0);
         // float new_x = transform.localEulerAngles.x + rotation.x*speed;
@@ -26,6 +28,7 @@ public class PlayerCamera : MonoBehaviour
         // if(new_x != clamp_x)
         //     Debug.Log(new_x);
 
+
         // Vector3 new_euler_angles = new Vector3(clamp_x, transform.eulerAngles.y + rotation.y*speed, transform.eulerAngles.z);
         transform.eulerAngles += rotation * speed;
 
@@ -33,6 +36,8 @@ public class PlayerCamera : MonoBehaviour
                  Application.Quit();
         }
     }
+
+
 
     public static void ZoomCamera()
     {

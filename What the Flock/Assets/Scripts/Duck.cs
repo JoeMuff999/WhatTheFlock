@@ -24,7 +24,7 @@ public class Duck : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.Translate(Vector3.forward * DuckSpeed);
+        transform.position += transform.forward * DuckSpeed * Time.deltaTime;
         currentTimer -= Time.deltaTime;
         if(currentTimer < 0)
             Destroy(gameObject);
@@ -42,11 +42,11 @@ public class Duck : MonoBehaviour
         Destroy(gameObject); //destroy yourself
     }
 
-    private void OnCollisionEnter(Collision other)
+    private void OnTriggerEnter(Collider other)
     {
-        if (other.collider.gameObject.layer == LayerMask.NameToLayer("Boid"))
+        if (other.gameObject.layer == LayerMask.NameToLayer("Boid"))
         {
-            StartCoroutine(killPlane(other.collider.gameObject));
+            StartCoroutine(killPlane(other.gameObject));
         }
     }
 
